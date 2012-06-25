@@ -7,54 +7,57 @@
 //
 
 #import "CalculatorViewController.h"
+#import "CalculatorBrain.h"
+
+@interface CalculatorViewController()
+@property (nonatomic) BOOL userIsInTheMiddleOfEnteringANumber;
+@property (nonatomic, strong) CalculatorBrain *brain;
+@end
 
 @implementation CalculatorViewController
+@synthesize display;
+@synthesize userIsInTheMiddleOfEnteringANumber;
+@synthesize brain = m_brain;
 
-- (void)didReceiveMemoryWarning
+- (CalculatorBrain *)brain
 {
-    [super didReceiveMemoryWarning];
-    // Release any cached data, images, etc that aren't in use.
+    if (!m_brain)
+    {
+        m_brain = [[CalculatorBrain alloc] init];
+    }
+    return m_brain;
 }
 
-#pragma mark - View lifecycle
-
-- (void)viewDidLoad
+- (IBAction)digitPressed:(UIButton *)sender 
 {
-    [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+    NSString *digit = [sender currentTitle];
+    if (self.userIsInTheMiddleOfEnteringANumber)
+    {
+        self.display.text = [self.display.text stringByAppendingString:digit];
+    }
+    else 
+    {
+        self.display.text = digit;
+        self.userIsInTheMiddleOfEnteringANumber = YES;
+    }
 }
 
-- (void)viewDidUnload
+- (IBAction)enterPressed 
 {
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
+    [self.brain pushOperand:[self.display.text doubleValue]];
+    self.userIsInTheMiddleOfEnteringANumber = NO;
 }
 
-- (void)viewWillAppear:(BOOL)animated
+- (IBAction)operationPressed:(UIButton *)sender
 {
-    [super viewWillAppear:animated];
+    if (self.userIsInTheMiddleOfEnteringANumber)
+    {
+        [self enterPressed];
+    }
+    NSString *operation = [sender currentTitle];
+    NSLog(@"Pressed %@", operation);
+    double result = [self.brain performOperation:operation];
+    self.display.text = [NSString stringWithFormat:@"%g", result];
+    NSLog(@"New display: %@", self.display.text);
 }
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-	[super viewWillDisappear:animated];
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-	[super viewDidDisappear:animated];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    // Return YES for supported orientations
-    return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-}
-
 @end
